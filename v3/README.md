@@ -22,12 +22,6 @@ Available data connectors are listed at the
 For local development, we use the reference agent implementation that is a part
 of the [NDC spec](https://github.com/hasura/ndc-spec).
 
-To start the reference agent only, you can do:
-
-```sh
-docker compose up reference_agent
-```
-
 ## Run v3-engine (with Postgres)
 
 ### Building with Docker
