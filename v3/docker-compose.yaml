@@ -97,26 +97,26 @@ services:
       COLLECTOR_OTLP_ENABLED: "true"
       COLLECTOR_ZIPKIN_HOST_PORT: "9411"
 
-  postgres_connector_ndc_v01:
-    image: ghcr.io/hasura/ndc-postgres:122d80f6c
-    ports:
-      - 8080:8080
-    environment:
-      CONNECTION_URI: "postgresql://postgres:password@postgres"
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://jaeger:4317"
-      OTEL_SERVICE_NAME: "ndc-postgres"
-      RUST_LOG: info
-    volumes:
-      - type: bind
-        source: ./crates/engine/tests/ndc-postgres-configuration
-        target: /etc/connector
-        read_only: true
-    depends_on:
-      postgres:
-        condition: service_healthy
+  # postgres_connector_ndc_v01:
+  #   image: ghcr.io/hasura/ndc-postgres:122d80f6c
+  #   ports:
+  #     - 8080:8080
+  #   environment:
+  #     CONNECTION_URI: "postgresql://postgres:password@postgres"
+  #     OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://jaeger:4317"
+  #     OTEL_SERVICE_NAME: "ndc-postgres"
+  #     RUST_LOG: info
+  #   volumes:
+  #     - type: bind
+  #       source: ./crates/engine/tests/ndc-postgres-configuration
+  #       target: /etc/connector
+  #       read_only: true
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
 
   postgres_connector:
-    image: ghcr.io/hasura/ndc-postgres:dev-main
+    image: ghcr.io/hasura/ndc-postgres:v3.0.0
     ports:
       - 8082:8080
     environment:
@@ -133,49 +133,49 @@ services:
       postgres:
         condition: service_healthy
 
-  custom_connector:
-    build:
-      dockerfile: custom-connector.Dockerfile
-    # this tag will only be found on images built in CI
-    # otherwise we build from Dockerfile
-    image: build.internal/custom-connector-x86_64-linux:ci
-    ports:
-      - "8102:8102"
-    environment:
-      RUST_LOG: info
-      ENABLE_RELATIONSHIP_SUPPORT: "1" # Enabled
-    healthcheck:
-      test: curl -fsS http://localhost:8102/schema
-      start_period: 5s
-      interval: 5s
-      timeout: 10s
-      retries: 20
+  # custom_connector:
+  #   build:
+  #     dockerfile: custom-connector.Dockerfile
+  #   # this tag will only be found on images built in CI
+  #   # otherwise we build from Dockerfile
+  #   image: build.internal/custom-connector-x86_64-linux:ci
+  #   ports:
+  #     - "8102:8102"
+  #   environment:
+  #     RUST_LOG: info
+  #     ENABLE_RELATIONSHIP_SUPPORT: "1" # Enabled
+  #   healthcheck:
+  #     test: curl -fsS http://localhost:8102/schema
+  #     start_period: 5s
+  #     interval: 5s
+  #     timeout: 10s
+  #     retries: 20
 
-  custom_connector_no_relationships:
-    build:
-      dockerfile: custom-connector.Dockerfile
-    # this tag will only be found on images built in CI
-    # otherwise we build from Dockerfile
-    image: build.internal/custom-connector-x86_64-linux:ci
-    ports:
-      - "8103:8102"
-    environment:
-      RUST_LOG: info
-      ENABLE_RELATIONSHIP_SUPPORT: "0" # Disabled
-    healthcheck:
-      test: curl -fsS http://localhost:8102/schema
-      start_period: 5s
-      interval: 5s
-      timeout: 10s
-      retries: 20
+  # custom_connector_no_relationships:
+  #   build:
+  #     dockerfile: custom-connector.Dockerfile
+  #   # this tag will only be found on images built in CI
+  #   # otherwise we build from Dockerfile
+  #   image: build.internal/custom-connector-x86_64-linux:ci
+  #   ports:
+  #     - "8103:8102"
+  #   environment:
+  #     RUST_LOG: info
+  #     ENABLE_RELATIONSHIP_SUPPORT: "0" # Disabled
+  #   healthcheck:
+  #     test: curl -fsS http://localhost:8102/schema
+  #     start_period: 5s
+  #     interval: 5s
+  #     timeout: 10s
+  #     retries: 20
 
-  custom_connector_ndc_v01:
-    # This is the v3-engine commit version before the custom connector got upgraded to ndc_models v0.2.0
-    image: ghcr.io/hasura/v3-custom-connector:bef8a750ca31b067952247ad348683a4faa843f5
-    ports:
-      - "8101:8101"
-    environment:
-      RUST_LOG: info
+  # custom_connector_ndc_v01:
+  #   # This is the v3-engine commit version before the custom connector got upgraded to ndc_models v0.2.0
+  #   image: ghcr.io/hasura/v3-custom-connector:bef8a750ca31b067952247ad348683a4faa843f5
+  #   ports:
+  #     - "8101:8101"
+  #   environment:
+  #     RUST_LOG: info
 
 volumes:
   postgres:
