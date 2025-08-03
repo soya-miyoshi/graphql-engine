@@ -1,0 +1,17 @@
+kind: DataConnectorLink
+version: v1
+definition:
+  name: my_pg
+  url:
+    readWriteUrls:
+      read:
+        valueFromEnv: APP_MY_PG_READ_URL
+      write:
+        valueFromEnv: APP_MY_PG_WRITE_URL
+  headers:
+    Authorization:
+      valueFromEnv: APP_MY_PG_AUTHORIZATION_HEADER
+  schema:
+    version: ""
+    schema: {}
+    capabilities: {}
