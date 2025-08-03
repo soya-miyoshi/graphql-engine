@@ -105,6 +105,7 @@ data AuthMode
   | AMAdminSecret !(Set.HashSet AdminSecretHash) !(Maybe RoleName)
   | AMAdminSecretAndHook !(Set.HashSet AdminSecretHash) !AuthHook
   | AMAdminSecretAndJWT !(Set.HashSet AdminSecretHash) ![JWTCtx] !(Maybe RoleName)
+  | AMAdminSecretAndJWTDB !(Set.HashSet AdminSecretHash) !(Maybe RoleName)
   deriving (Eq, Show)
 
 -- | In case JWT is used as an authentication mode, the JWKs are stored inside JWTCtx
@@ -117,6 +118,8 @@ compareAuthMode authMode authMode' = do
       -- Since keyConfig of JWTCtx is an IORef it is necessary to extract the value before checking the equality
       isJwtCtxSame <- zipWithM compareJWTConfig jwtCtx jwtCtx'
       return $ (adminSecretHash == adminSecretHash') && (and isJwtCtxSame) && (roleName == roleName')
+    ((AMAdminSecretAndJWTDB adminSecretHash roleName), (AMAdminSecretAndJWTDB adminSecretHash' roleName')) ->
+      return $ (adminSecretHash == adminSecretHash') && (roleName == roleName')
     _ -> return $ authMode == authMode'
   where
     compareJWTConfig :: JWTCtx -> JWTCtx -> IO Bool
@@ -139,15 +142,19 @@ setupAuthMode ::
   Maybe AuthHook ->
   [JWTConfig] ->
   Maybe RoleName ->
+  Bool ->  -- Use database-backed JWT config
   Logger Hasura ->
   HTTP.Manager ->
   m AuthMode
-setupAuthMode adminSecretHashSet mWebHook mJwtSecrets mUnAuthRole logger httpManager =
-  case (not (Set.null adminSecretHashSet), mWebHook, not (null mJwtSecrets)) of
-    (True, Nothing, False) -> return $ AMAdminSecret adminSecretHashSet mUnAuthRole
-    (True, Nothing, True) -> do
+setupAuthMode adminSecretHashSet mWebHook mJwtSecrets mUnAuthRole useJwtDb logger httpManager =
+  case (not (Set.null adminSecretHashSet), mWebHook, not (null mJwtSecrets), useJwtDb) of
+    (True, Nothing, False, False) -> return $ AMAdminSecret adminSecretHashSet mUnAuthRole
+    (True, Nothing, False, True) -> return $ AMAdminSecretAndJWTDB adminSecretHashSet mUnAuthRole
+    (True, Nothing, True, False) -> do
       jwtCtxs <- traverse (\jSecret -> mkJwtCtx jSecret logger httpManager) (L.nub mJwtSecrets)
       pure $ AMAdminSecretAndJWT adminSecretHashSet jwtCtxs mUnAuthRole
+    (True, Nothing, True, True) -> 
+      throwError "Fatal Error: Cannot use both JWT secrets and database-backed JWT configuration"
     -- Nothing below this case uses unauth role. Throw a fatal error if we would otherwise ignore
     -- that parameter, lest users misunderstand their auth configuration:
     _
@@ -156,19 +163,26 @@ setupAuthMode adminSecretHashSet mWebHook mJwtSecrets mUnAuthRole logger httpMan
             $ "Fatal Error: --unauthorized-role (HASURA_GRAPHQL_UNAUTHORIZED_ROLE)"
             <> requiresAdminScrtMsg
             <> " and is not allowed when --auth-hook (HASURA_GRAPHQL_AUTH_HOOK) is set"
-    (False, Nothing, False) -> return AMNoAuth
-    (True, Just hook, False) -> return $ AMAdminSecretAndHook adminSecretHashSet hook
-    (False, Just _, False) ->
+    (False, Nothing, False, False) -> return AMNoAuth
+    (True, Just hook, False, False) -> return $ AMAdminSecretAndHook adminSecretHashSet hook
+    (False, Just _, False, _) ->
       throwError
         $ "Fatal Error : --auth-hook (HASURA_GRAPHQL_AUTH_HOOK)"
         <> requiresAdminScrtMsg
-    (False, Nothing, True) ->
+    (False, Nothing, True, _) ->
       throwError
         $ "Fatal Error : --jwt-secret (HASURA_GRAPHQL_JWT_SECRET)"
         <> requiresAdminScrtMsg
-    (_, Just _, True) ->
+    (False, Nothing, False, True) ->
+      throwError
+        $ "Fatal Error : --jwt-db (HASURA_GRAPHQL_JWT_DB)"
+        <> requiresAdminScrtMsg
+    (_, Just _, True, _) ->
       throwError
         "Fatal Error: Both webhook and JWT mode cannot be enabled at the same time"
+    (_, Just _, _, True) ->
+      throwError
+        "Fatal Error: Both webhook and JWT DB mode cannot be enabled at the same time"
   where
     requiresAdminScrtMsg =
       " requires --admin-secret (HASURA_GRAPHQL_ADMIN_SECRET) or "
@@ -297,6 +311,9 @@ getUserInfoWithExpTime_ userInfoFromAuthHook_ processJwt_ logger manager rawHead
     checkingSecretIfSent adminSecretHashSet
       $ processJwt_ jwtSecrets rawHeaders unAuthRole
       <&> (\(a, b, c, _) -> (a, b, c))
+  AMAdminSecretAndJWTDB adminSecretHashSet unAuthRole ->
+    checkingSecretIfSent adminSecretHashSet
+      $ throw500 "JWT DB mode not yet implemented in getUserInfoWithExpTime"
   where
     -- CAREFUL!:
     mkUserInfoFallbackAdminRole adminSecretState =

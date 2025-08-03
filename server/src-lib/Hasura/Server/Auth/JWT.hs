@@ -27,6 +27,7 @@
 -- considered an ambiguity error.
 module Hasura.Server.Auth.JWT
   ( processJwt,
+    processJwtDB,
     RawJWT,
     StringOrURI (..),
     JWTConfig (..),
