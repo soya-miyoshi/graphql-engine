@@ -1,0 +1,13 @@
+{
+  "version": "v3",
+  "definition": {
+    "mode": {
+      "webhook": {
+        "method": "POST",
+        "url": {
+          "value": "http://auth_hook:3050/validate-request"
+        }
+      }
+    }
+  }
+}
