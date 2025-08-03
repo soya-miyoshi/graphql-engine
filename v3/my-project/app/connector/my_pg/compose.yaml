@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: .hasura-connector/Dockerfile.my_pg
+    env_file: ../../../.env
     environment:
       CONNECTION_URI: $APP_MY_PG_CONNECTION_URI
       HASURA_SERVICE_TOKEN_SECRET: $APP_MY_PG_HASURA_SERVICE_TOKEN_SECRET
