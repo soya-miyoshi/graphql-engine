@@ -1,0 +1,130 @@
+---
+kind: ObjectType
+version: v1
+definition:
+  name: User
+  fields:
+    - name: age
+      type: Int32!
+    - name: id
+      type: Int32!
+    - name: name
+      type: String_1!
+  graphql:
+    typeName: User
+    inputTypeName: UserInput
+  dataConnectorTypeMapping:
+    - dataConnectorName: my_pg
+      dataConnectorObjectType: user
+
+---
+kind: TypePermissions
+version: v1
+definition:
+  typeName: User
+  permissions:
+    - role: admin
+      output:
+        allowedFields:
+          - age
+          - id
+          - name
+
+---
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: UserBoolExp
+  operand:
+    object:
+      type: User
+      comparableFields:
+        - fieldName: age
+          booleanExpressionType: Int4BoolExp
+        - fieldName: id
+          booleanExpressionType: Int4BoolExp
+        - fieldName: name
+          booleanExpressionType: TextBoolExp
+      comparableRelationships: []
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: true
+  graphql:
+    typeName: UserBoolExp
+
+---
+kind: AggregateExpression
+version: v1
+definition:
+  name: UserAggExp
+  operand:
+    object:
+      aggregatedType: User
+      aggregatableFields:
+        - fieldName: age
+          aggregateExpression: Int4AggExp
+        - fieldName: id
+          aggregateExpression: Int4AggExp
+        - fieldName: name
+          aggregateExpression: TextAggExp
+  count:
+    enable: true
+    returnType: Int64
+  graphql:
+    selectTypeName: UserAggExp
+
+---
+kind: OrderByExpression
+version: v1
+definition:
+  name: UserOrderByExp
+  operand:
+    object:
+      orderedType: User
+      orderableFields:
+        - fieldName: age
+          orderByExpression: Int32OrderByExp
+        - fieldName: id
+          orderByExpression: Int32OrderByExp
+        - fieldName: name
+          orderByExpression: String1OrderByExp
+      orderableRelationships: []
+  graphql:
+    expressionTypeName: UserOrderByExp
+
+---
+kind: Model
+version: v2
+definition:
+  name: User
+  objectType: User
+  source:
+    dataConnectorName: my_pg
+    collection: user
+  filterExpressionType: UserBoolExp
+  aggregateExpression: UserAggExp
+  orderByExpression: UserOrderByExp
+  graphql:
+    selectMany:
+      queryRootField: user
+      subscription:
+        rootField: user
+    selectUniques: []
+    filterInputTypeName: UserFilterInput
+    aggregate:
+      queryRootField: userAggregate
+      subscription:
+        rootField: userAggregate
+
+---
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: User
+  permissions:
+    - role: admin
+      select:
+        filter: null
+        allowSubscriptions: true
+
