@@ -1,5 +1,5 @@
 services:
-  app_my_pg:
+  connector:
     build:
       context: .
       dockerfile: .hasura-connector/Dockerfile.my_pg

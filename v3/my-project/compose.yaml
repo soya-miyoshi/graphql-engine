@@ -1,6 +1,6 @@
 include:
   - path: app/connector/my_pg/compose.yaml
-    env_file: .env
+    # env_file: .env
 services:
   jaeger:
     image: jaegertracing/all-in-one:1.55
