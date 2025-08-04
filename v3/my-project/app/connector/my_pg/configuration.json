@@ -459,9 +459,7 @@
       "timescaledb_information",
       "_timescaledb_debug"
     ],
-    "unqualifiedSchemasForTables": [
-      "public"
-    ],
+    "unqualifiedSchemasForTables": ["public"],
     "unqualifiedSchemasForTypesAndProcedures": [
       "public",
       "pg_catalog",
