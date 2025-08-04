@@ -1,10 +1,13 @@
 # Hasura v3 Metadata Guide
 
-This guide explains how to create and configure metadata for the Hasura GraphQL Engine v3 to define your GraphQL API.
+This guide explains how to create and configure metadata for the Hasura GraphQL
+Engine v3 to define your GraphQL API.
 
 ## Overview
 
-In Hasura v3, the GraphQL schema is completely determined by OpenDDS (Open Data Domain Specification) metadata. This metadata defines:
+In Hasura v3, the GraphQL schema is completely determined by OpenDDS (Open Data
+Domain Specification) metadata. This metadata defines:
+
 - Data sources (connectors)
 - Object types and their fields
 - Models (for queries)
@@ -45,10 +48,10 @@ First, configure your data source:
     "name": "my_db",
     "url": {
       "singleUrl": {
-        "value": "http://localhost:8082"  // Your connector URL
+        "value": "http://localhost:8082" // Your connector URL
       }
     },
-    "headers": {},  // Optional auth headers
+    "headers": {}, // Optional auth headers
     "schema": {
       // NDC schema - usually fetched from connector
     }
@@ -236,7 +239,7 @@ Control access per role:
       {
         "role": "admin",
         "select": {
-          "filter": null  // No filter - can see all
+          "filter": null // No filter - can see all
         }
       },
       {
@@ -383,6 +386,7 @@ Here's a minimal complete metadata file:
 1. Save your metadata to a file (e.g., `my_metadata.json`)
 
 2. Run the engine:
+
 ```bash
 cargo run --bin engine -- \
     --metadata-path my_metadata.json \
@@ -393,6 +397,7 @@ cargo run --bin engine -- \
 3. Access GraphiQL at http://localhost:3000
 
 4. Test your queries:
+
 ```graphql
 query {
   users {
@@ -405,31 +410,40 @@ query {
 ## Common Issues and Troubleshooting
 
 ### 1. "Unknown object type" Error
-**Problem**: Reference to an undefined type
-**Solution**: Ensure the ObjectType is defined before being referenced in Models
+
+**Problem**: Reference to an undefined type **Solution**: Ensure the ObjectType
+is defined before being referenced in Models
 
 ### 2. "Field not found in connector schema"
-**Problem**: Field mapping doesn't match connector
-**Solution**: Check connector schema with `curl http://localhost:8102/schema`
+
+**Problem**: Field mapping doesn't match connector **Solution**: Check connector
+schema with `curl http://localhost:8102/schema`
 
 ### 3. "Invalid GraphQL name"
-**Problem**: Using reserved words or invalid characters
-**Solution**: Use valid GraphQL identifiers (start with letter, alphanumeric + underscore)
+
+**Problem**: Using reserved words or invalid characters **Solution**: Use valid
+GraphQL identifiers (start with letter, alphanumeric + underscore)
 
 ### 4. No Data Returned
+
 **Possible Causes**:
+
 - Connector not running or wrong URL
 - Permission filters blocking access
 - Empty collections in connector
 
 ### 5. Relationship Not Working
+
 **Check**:
+
 - Source and target models exist
 - Field types match (Int to Int, String to String)
 - Mapping fields exist in both types
 
 ### 6. Command/Mutation Fails
+
 **Verify**:
+
 - Procedure exists in connector
 - Argument types match exactly
 - CommandPermissions allow execution for your role

@@ -1,6 +1,7 @@
 # Running Hasura v3 Engine with Custom Metadata
 
-This guide shows you how to run the Hasura v3 engine with your own metadata to create a custom GraphQL API.
+This guide shows you how to run the Hasura v3 engine with your own metadata to
+create a custom GraphQL API.
 
 ## Prerequisites
 
@@ -12,7 +13,8 @@ This guide shows you how to run the Hasura v3 engine with your own metadata to c
 
 ### 1. Using the Custom Connector (No Database Required)
 
-The easiest way to start is with the custom connector that doesn't require a database:
+The easiest way to start is with the custom connector that doesn't require a
+database:
 
 ```bash
 # Terminal 1: Run the custom connector
@@ -46,12 +48,14 @@ cargo run --bin engine -- \
 Choose one of these options:
 
 **Option A: Custom Connector (For Testing)**
+
 ```bash
 cargo run --bin custom-connector
 # Runs on http://localhost:8102
 ```
 
 **Option B: Postgres Connector**
+
 ```bash
 docker compose up -d postgres postgres_connector
 # Runs on http://localhost:8082
@@ -65,7 +69,7 @@ Fetch the schema from your connector:
 # For custom connector
 curl http://localhost:8102/schema > connector-schema.json
 
-# For postgres connector  
+# For postgres connector
 curl http://localhost:8082/schema > connector-schema.json
 ```
 
@@ -79,11 +83,13 @@ curl http://localhost:8082/schema > connector-schema.json
 ### Step 4: Choose Authentication Mode
 
 **For Development (No Auth):**
+
 ```bash
 --authn-config-path static/auth/noauth_config_v3.json
 ```
 
 **For Webhook Auth:**
+
 ```bash
 # First run the auth webhook
 cargo run --bin dev-auth-webhook
@@ -98,6 +104,14 @@ cargo run --bin dev-auth-webhook
 cargo run --bin engine -- \
     --metadata-path <your-metadata.json> \
     --authn-config-path <auth-config.json> \
+    --port 3000 \
+    --otlp-endpoint http://localhost:4317  # Optional: for tracing
+```
+
+```bash
+cargo run --bin engine -- \
+    --metadata-path my-project/engine/build/metadata.json \
+    --authn-config-path my-project/engine/build/auth_config.json \
     --port 3000 \
     --otlp-endpoint http://localhost:4317  # Optional: for tracing
 ```
@@ -137,6 +151,7 @@ cargo run --bin engine -- --help
 ```
 
 Key options:
+
 - `--metadata-path`: Path to your metadata JSON file
 - `--authn-config-path`: Authentication configuration
 - `--port`: Server port (default: 3000)
@@ -179,12 +194,14 @@ cargo run --bin engine
 ## Validating Your Metadata
 
 The engine validates metadata on startup. Check for:
+
 - Valid JSON syntax
 - Correct object references
 - Matching connector schemas
 - Valid GraphQL names
 
 Common validation errors:
+
 - "Unknown object type" - Check type definitions
 - "Unknown model" - Ensure model is defined
 - "Invalid field mapping" - Verify connector schema
